@@ -1,0 +1,75 @@
+services:
+  laravel:
+    build: ./laravel-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./laravel-app/src:/var/www
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: laravel-db
+      DB_PORT: 3306
+      DB_DATABASE: laravel_db
+      DB_USERNAME: laravel
+      DB_PASSWORD: laravel
+    depends_on:
+      laravel-db:
+        condition: service_healthy
+
+  laravel-db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: laravel_db
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: laravel
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - laravel_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  rails:
+    build: ./rails-app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./rails-app/src:/app
+    environment:
+      DATABASE_URL: postgres://rails:rails@rails-db:5432/rails_db
+      RAILS_ENV: development
+      SECRET_KEY_BASE: dev_secret_key_base_change_me
+      PIDFILE: /tmp/rails-server.pid
+    depends_on:
+      rails-db:
+        condition: service_healthy
+
+  rails-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: rails_db
+      POSTGRES_USER: rails
+      POSTGRES_PASSWORD: rails
+    volumes:
+      - rails_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rails -d rails_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/html:/usr/share/nginx/html:ro
+    depends_on:
+      - laravel
+      - rails
+volumes:
+  laravel_db_data:
+  rails_db_data:
