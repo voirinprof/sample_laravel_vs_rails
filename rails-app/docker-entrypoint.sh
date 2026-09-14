@@ -7,4 +7,6 @@ if [ ! -f /app/bin/rails ]; then
     bundle install
 fi
 
+rm -f "${PIDFILE:-/tmp/rails-server.pid}"
+
 exec "$@"

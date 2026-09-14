@@ -9,7 +9,6 @@ RUN gem install rails -v 7.1.3
 WORKDIR /build
 
 RUN rails new . --database=postgresql --skip-test --skip-jbuilder
-COPY overlay/ ./
 RUN bundle install
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh

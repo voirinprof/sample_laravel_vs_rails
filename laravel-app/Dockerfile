@@ -10,7 +10,6 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /build
 
 RUN composer create-project laravel/laravel . --prefer-dist --no-interaction
-COPY overlay/ ./
 RUN php artisan key:generate
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
